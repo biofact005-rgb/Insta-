@@ -8,6 +8,9 @@ import os
 import json
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from flask import Flask
+from threading import Thread
+
 
 # 🔒 Ye line .env file se saare hidden secrets nikal legi
 load_dotenv()
@@ -444,7 +447,27 @@ def process_track_order(message, prev_message_id):
 # ==========================================
 # 🚀 ANTI-CRASH RUNNER
 # ==========================================
-print("MongoDB VIP SMM Bot is Running...")
+
+# ==========================================
+# 🌐 DUMMY WEB SERVER (RENDER WEB SERVICE FIX)
+# ==========================================
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "VIP Bot is Running 24/7!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
+
+# Dummy server ko background me start karo
+Thread(target=run_web).start()
+
+# ==========================================
+# 🚀 ANTI-CRASH RUNNER
+# ==========================================
+print("MongoDB VIP SMM Bot is Running on Web Service...")
 while True:
     try:
         bot.infinity_polling(timeout=10, long_polling_timeout=5)
