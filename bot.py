@@ -33,8 +33,8 @@ INSTA_VIEW_RATE = 0.01
 # Iske niche aapka baki ka images aur database setup wala code same rahega...
 
 
-API_URL = "https://themainsmmprovider.com/api/v2"
-API_KEY = "f53e6d46f93b5bbb5f473d828f698afe5c7b329f"
+API_URL = "https://tntsmm.in/api/v2"
+API_KEY = os.getenv("API_KEY")
 SERVICE_ID = 4276 
 INSTA_VIEW_RATE = 0.01 
 
