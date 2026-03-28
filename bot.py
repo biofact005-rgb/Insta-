@@ -19,8 +19,13 @@ load_dotenv()
 # ⚙️ CONFIGURATION (SECURE & HIDDEN)
 # ==========================================
 # Ab yahan koi asli token nahi hai, sab os.getenv se aa raha hai
+load_dotenv()
+
+# ==========================================
+# ⚙️ CONFIGURATION (SECURE & HIDDEN)
+# ==========================================
 TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID"))
+ADMIN_ID = int(os.getenv("ADMIN_ID", "8718760365")) # Agar env me na mile toh crash na ho
 API_KEY = os.getenv("API_KEY")
 MONGO_URI = os.getenv("MONGO_URI")
 
@@ -30,13 +35,9 @@ API_URL = "https://tntsmm.in/api/v2"
 SERVICE_ID = 4276 
 INSTA_VIEW_RATE = 0.01 
 
-# Iske niche aapka baki ka images aur database setup wala code same rahega...
+# Iske niche seedha IMAGES = { wala code rehne dena
 
 
-API_URL = "https://tntsmm.in/api/v2"
-API_KEY = os.getenv("API_KEY")
-SERVICE_ID = 4276 
-INSTA_VIEW_RATE = 0.01 
 
 IMAGES = {
     "home": "https://graph.org/file/95b88e6251f19b911c08f-c36ee2ffe4f047e079.jpg",
