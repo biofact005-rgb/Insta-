@@ -215,13 +215,14 @@ def admin_broadcast(message):
         except: pass
     bot.reply_to(message, f"✅ Broadcast Complete! Sent to {success} users.")
 
+
+
+
+
 @bot.message_handler(commands=['backup'])
 def admin_backup(message):
     if message.from_user.id != ADMIN_ID: return
     bot.reply_to(message, "⏳ Generating MongoDB Backup...")
-
-
-
     
     users_data = list(users_col.find({}))
     for u in users_data:
@@ -234,9 +235,6 @@ def admin_backup(message):
         bot.send_document(message.chat.id, doc, caption="📦 <b>Database Backup</b>\n\nAll user balances and info successfully exported.", parse_mode='HTML')
     
     os.remove("database_backup.json") # Clean up file after sending
-
-    text += "\n<i>Status check karne ke liye is ID ko Help section me bhejein.</i>"
-    bot.reply_to(message, text, parse_mode='HTML')
 
 @bot.message_handler(commands=['history'])
 def user_history(message):
@@ -253,8 +251,10 @@ def user_history(message):
     for i, order in enumerate(orders, 1):
         text += f"<blockquote>{i}. 🆔 <b>Order ID:</b> <code>{order['_id']}</code></blockquote>\n"
         
+    text += "\n<i>Status check karne ke liye is ID ko Help section me bhejein.</i>"
+    bot.reply_to(message, text, parse_mode='HTML')
 
-     @bot.message_handler(commands=['addbal'])
+@bot.message_handler(commands=['addbal'])
 def add_balance(message):
     if message.from_user.id != ADMIN_ID: return
     try:
@@ -309,7 +309,6 @@ def bot_stats(message):
     )
     bot.reply_to(message, text, parse_mode='HTML')
 
-
 @bot.message_handler(commands=['maintenance'])
 def toggle_maintenance(message):
     if message.from_user.id != ADMIN_ID: return
@@ -326,7 +325,6 @@ def toggle_maintenance(message):
         status = "ON 🔴" if MAINTENANCE_MODE else "OFF 🟢"
         bot.reply_to(message, f"ℹ️ <b>Current Status:</b> {status}\nUse: <code>/maintenance on</code> or <code>/maintenance off</code>", parse_mode='HTML')
 
-
 # ==========================================
 # 🤖 BOT HANDLERS
 # ==========================================
@@ -335,8 +333,6 @@ def send_welcome(message):
     if MAINTENANCE_MODE and message.from_user.id != ADMIN_ID:
         bot.reply_to(message, "🚧 <b>BOT IS UNDER MAINTENANCE</b> 🚧\n\nHum abhi kuch naye features add kar rahe hain. Kripya thodi der baad try karein!", parse_mode='HTML')
         return
-    # Iske niche aapka purana user_id = message.from_user.id wala code same rahega
-
 
     user_id = message.from_user.id
     
@@ -367,12 +363,14 @@ def send_welcome(message):
     caption, markup = get_home_content(user_id, message.from_user.first_name)
     bot.send_photo(message.chat.id, photo=IMAGES['home'], caption=caption, parse_mode='HTML', reply_markup=markup)
 
-
-
- @bot.callback_query_handler(func=lambda call: True)
-   def handle_query(call):
-       if MAINTENANCE_MODE and call.from_user.id != ADMIN_ID:
+@bot.callback_query_handler(func=lambda call: True)
+def handle_query(call):
+    if MAINTENANCE_MODE and call.from_user.id != ADMIN_ID:
         return bot.answer_callback_query(call.id, "🚧 Bot is under maintenance! Please wait.", show_alert=True)
+
+
+    
+        
     # Iske niche aapka purana chat_id, message_id wala code rahega
     
     chat_id, message_id, user_id = call.message.chat.id, call.message.message_id, call.from_user.id
