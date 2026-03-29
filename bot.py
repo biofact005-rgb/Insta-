@@ -32,7 +32,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 CHANNEL_USERNAME = "@errorkid_05" 
 REFER_REWARD = 20.0 
 API_URL = "https://tntsmm.in/api/v2"
-SERVICE_ID = 4276 
+SERVICE_ID = 12567
 INSTA_VIEW_RATE = 0.01 
 
 # Iske niche seedha IMAGES = { wala code rehne dena
