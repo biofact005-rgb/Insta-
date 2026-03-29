@@ -28,12 +28,14 @@ TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "8718760365")) # Agar env me na mile toh crash na ho
 API_KEY = os.getenv("API_KEY")
 MONGO_URI = os.getenv("MONGO_URI")
+MAINTENANCE_MODE = False
 
 
 
 # Purana CHANNEL_USERNAME = "@errorkid_05" hata kar ye likho:
 CHANNEL_USERNAME_1 = "@errorkid_05" 
 CHANNEL_USERNAME_2 = "@ER_INSTAUPDATE" # Yahan dusra channel daalna
+PROOF_CHANNEL = "@live_proff" # Yahan apne naye proof channel ka username dalna
 
 
 
@@ -233,7 +235,8 @@ def admin_backup(message):
     
     os.remove("database_backup.json") # Clean up file after sending
 
-
+    text += "\n<i>Status check karne ke liye is ID ko Help section me bhejein.</i>"
+    bot.reply_to(message, text, parse_mode='HTML')
 
 @bot.message_handler(commands=['history'])
 def user_history(message):
@@ -250,8 +253,78 @@ def user_history(message):
     for i, order in enumerate(orders, 1):
         text += f"<blockquote>{i}. 🆔 <b>Order ID:</b> <code>{order['_id']}</code></blockquote>\n"
         
-    text += "\n<i>Status check karne ke liye is ID ko Help section me bhejein.</i>"
+
+     @bot.message_handler(commands=['addbal'])
+def add_balance(message):
+    if message.from_user.id != ADMIN_ID: return
+    try:
+        args = message.text.split()
+        target_user_id = int(args[1])
+        amount = float(args[2])
+        
+        user = users_col.find_one({"_id": target_user_id})
+        if user:
+            users_col.update_one({"_id": target_user_id}, {"$inc": {"diamonds": amount}})
+            bot.reply_to(message, f"✅ <b>Success!</b>\nAdded {amount} 💎 to user <code>{target_user_id}</code>.", parse_mode='HTML')
+            
+            # User ko notification bhejna
+            try:
+                bot.send_message(target_user_id, f"🎉 <b>FUNDS ADDED!</b>\n\nAdmin ne aapke account me <b>{amount} 💎 Diamonds</b> add kar diye hain.\nType /start to refresh your balance.", parse_mode='HTML')
+            except: pass
+        else:
+            bot.reply_to(message, "❌ User database me nahi mila. Check User ID.", parse_mode='HTML')
+    except Exception:
+        bot.reply_to(message, "⚠️ <b>Format:</b> <code>/addbal USER_ID AMOUNT</code>\nEx: <code>/addbal 123456789 50</code>", parse_mode='HTML')
+
+@bot.message_handler(commands=['cutbal'])
+def cut_balance(message):
+    if message.from_user.id != ADMIN_ID: return
+    try:
+        args = message.text.split()
+        target_user_id = int(args[1])
+        amount = float(args[2])
+        
+        user = users_col.find_one({"_id": target_user_id})
+        if user:
+            users_col.update_one({"_id": target_user_id}, {"$inc": {"diamonds": -amount}})
+            bot.reply_to(message, f"✅ <b>Success!</b>\nDeducted {amount} 💎 from user <code>{target_user_id}</code>.", parse_mode='HTML')
+        else:
+            bot.reply_to(message, "❌ User database me nahi mila.", parse_mode='HTML')
+    except Exception:
+        bot.reply_to(message, "⚠️ <b>Format:</b> <code>/cutbal USER_ID AMOUNT</code>", parse_mode='HTML')
+
+@bot.message_handler(commands=['stats'])
+def bot_stats(message):
+    if message.from_user.id != ADMIN_ID: return
+    
+    bot.reply_to(message, "⏳ Fetching stats...", parse_mode='HTML')
+    total_users = users_col.count_documents({})
+    total_orders = orders_col.count_documents({})
+    
+    text = (
+        "📊 <b>VIP BOT STATISTICS</b> 📊\n\n"
+        f"<blockquote>👥 <b>Total Users:</b> {total_users}\n"
+        f"🛒 <b>Total Orders:</b> {total_orders}</blockquote>\n\n"
+        "<i>All systems are running smoothly!</i>"
+    )
     bot.reply_to(message, text, parse_mode='HTML')
+
+
+@bot.message_handler(commands=['maintenance'])
+def toggle_maintenance(message):
+    if message.from_user.id != ADMIN_ID: return
+    global MAINTENANCE_MODE
+    
+    args = message.text.split()
+    if len(args) > 1 and args[1].lower() == "on":
+        MAINTENANCE_MODE = True
+        bot.reply_to(message, "🚧 <b>Maintenance Mode: ON</b>\nNormal users ke liye bot band kar diya gaya hai.", parse_mode='HTML')
+    elif len(args) > 1 and args[1].lower() == "off":
+        MAINTENANCE_MODE = False
+        bot.reply_to(message, "✅ <b>Maintenance Mode: OFF</b>\nBot wapas sabke liye chalu kar diya gaya hai.", parse_mode='HTML')
+    else:
+        status = "ON 🔴" if MAINTENANCE_MODE else "OFF 🟢"
+        bot.reply_to(message, f"ℹ️ <b>Current Status:</b> {status}\nUse: <code>/maintenance on</code> or <code>/maintenance off</code>", parse_mode='HTML')
 
 
 # ==========================================
@@ -259,6 +332,12 @@ def user_history(message):
 # ==========================================
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    if MAINTENANCE_MODE and message.from_user.id != ADMIN_ID:
+        bot.reply_to(message, "🚧 <b>BOT IS UNDER MAINTENANCE</b> 🚧\n\nHum abhi kuch naye features add kar rahe hain. Kripya thodi der baad try karein!", parse_mode='HTML')
+        return
+    # Iske niche aapka purana user_id = message.from_user.id wala code same rahega
+
+
     user_id = message.from_user.id
     
     user = users_col.find_one({"_id": user_id})
@@ -288,8 +367,14 @@ def send_welcome(message):
     caption, markup = get_home_content(user_id, message.from_user.first_name)
     bot.send_photo(message.chat.id, photo=IMAGES['home'], caption=caption, parse_mode='HTML', reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: True)
-def handle_query(call):
+
+
+ @bot.callback_query_handler(func=lambda call: True)
+   def handle_query(call):
+       if MAINTENANCE_MODE and call.from_user.id != ADMIN_ID:
+        return bot.answer_callback_query(call.id, "🚧 Bot is under maintenance! Please wait.", show_alert=True)
+    # Iske niche aapka purana chat_id, message_id wala code rahega
+    
     chat_id, message_id, user_id = call.message.chat.id, call.message.message_id, call.from_user.id
     first_name = call.from_user.first_name
 
@@ -399,6 +484,13 @@ def handle_query(call):
                     admin_alert = f"🚨 <b>NEW ORDER ALERT</b> 🚨\n\n<blockquote>👤 <b>User:</b> <code>{user_id}</code>\n🔗 <b>Link:</b> {order_data['link']}\n🔢 <b>Qty:</b> {order_data['qty']}\n💎 <b>Spent:</b> {round(cost, 2)} Diamonds</blockquote>"
                     try: bot.send_message(ADMIN_ID, admin_alert, parse_mode='HTML')
                     except: pass
+
+                # 📢 LIVE PROOF CHANNEL AUTO-POST (YE NAYA ADD KARNA HAI)
+                    hidden_user = str(user_id)[:3] + "****" + str(user_id)[-2:]
+                    proof_msg = f"🎉 <b>New Order Placed!</b> 🎉\n\n👤 <b>User:</b> <code>{hidden_user}</code>\n🛍️ <b>Service:</b> Instagram Views\n🔢 <b>Quantity:</b> {order_data['qty']}\n✅ <b>Status:</b> Processing"
+                    try: bot.send_message(PROOF_CHANNEL, proof_msg, parse_mode='HTML')
+                    except: pass
+                        
                 else:
                     users_col.update_one({"_id": user_id}, {"$inc": {"diamonds": cost}})
                     bot.edit_message_caption(caption=f"❌ <b>API Error!</b>\nOrder failed: {api_res.get('error', 'Unknown')}\nYour diamonds have been refunded.", chat_id=chat_id, message_id=message_id, parse_mode='HTML', reply_markup=cancel_menu())
