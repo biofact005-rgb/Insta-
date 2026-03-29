@@ -29,7 +29,14 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "8718760365")) # Agar env me na mile toh cr
 API_KEY = os.getenv("API_KEY")
 MONGO_URI = os.getenv("MONGO_URI")
 
-CHANNEL_USERNAME = "@errorkid_05" 
+
+
+# Purana CHANNEL_USERNAME = "@errorkid_05" hata kar ye likho:
+CHANNEL_USERNAME_1 = "@errorkid_05" 
+CHANNEL_USERNAME_2 = "@second_channel" # Yahan dusra channel daalna
+
+
+
 REFER_REWARD = 20.0 
 API_URL = "https://tntsmm.in/api/v2"
 SERVICE_ID = 12567
@@ -79,12 +86,28 @@ pending_orders = {}
 # ==========================================
 # 🛠️ HELPER FUNCTIONS
 # ==========================================
+
+
+
 def check_joined(user_id):
     try:
-        status = bot.get_chat_member(CHANNEL_USERNAME, user_id).status
-        return status in ['member', 'administrator', 'creator']
+        status1 = bot.get_chat_member(CHANNEL_USERNAME_1, user_id).status
+        status2 = bot.get_chat_member(CHANNEL_USERNAME_2, user_id).status
+        valid_statuses = ['member', 'administrator', 'creator']
+        # Dono channel check karega
+        return status1 in valid_statuses and status2 in valid_statuses
     except Exception:
         return False
+
+def force_join_menu():
+    markup = InlineKeyboardMarkup()
+    # Dono asli channel ke buttons
+    markup.row(InlineKeyboardButton("📣 Join Channel 1", url=f"https://t.me/{CHANNEL_USERNAME_1[1:]}"), 
+               InlineKeyboardButton("📣 Join Channel 2", url=f"https://t.me/{CHANNEL_USERNAME_2[1:]}"))
+    markup.row(InlineKeyboardButton("✅ JOINED", callback_data="check_join"))
+    return markup
+
+
 
 def place_smm_order(link, quantity):
     payload = {'key': API_KEY, 'action': 'add', 'service': SERVICE_ID, 'link': link, 'quantity': quantity}
@@ -107,12 +130,6 @@ def check_smm_status(panel_order_id):
 # ==========================================
 # 📱 VIP MENUS
 # ==========================================
-def force_join_menu():
-    markup = InlineKeyboardMarkup()
-    markup.row(InlineKeyboardButton("📣 Channel 1", url=f"https://t.me/{CHANNEL_USERNAME[1:]}"), InlineKeyboardButton("📣 Channel 2", url=f"https://t.me/{CHANNEL_USERNAME[1:]}"))
-    markup.row(InlineKeyboardButton("📣 Channel 3", url=f"https://t.me/{CHANNEL_USERNAME[1:]}"), InlineKeyboardButton("📣 Channel 4", url=f"https://t.me/{CHANNEL_USERNAME[1:]}"))
-    markup.row(InlineKeyboardButton("✅ JOINED", callback_data="check_join"))
-    return markup
 
 def get_home_content(user_id, first_name):
     user_data = users_col.find_one({"_id": user_id})
@@ -143,8 +160,8 @@ def get_home_content(user_id, first_name):
     ).format(first_name, user_id, round(diamonds, 2), invites, display_users)
 
     markup = InlineKeyboardMarkup()
-    markup.row(InlineKeyboardButton("🔗 GET INSTA VIEWS", callback_data="insta_view"))
-    markup.row(InlineKeyboardButton("🦋 REFER", callback_data="earn"), InlineKeyboardButton("🌍 PROMO CODE", callback_data="enter_promo"))
+    markup.row(InlineKeyboardButton("📈 GET INSTA VIEWS", callback_data="insta_view"))
+    markup.row(InlineKeyboardButton("👥 REFER", callback_data="earn"), InlineKeyboardButton("🎟️ PROMO CODE", callback_data="enter_promo"))
     markup.row(InlineKeyboardButton("⭐ STATS & HELP", callback_data="track_help"), InlineKeyboardButton("🆘 BUY DIAMONDS", callback_data="buy_diamond"))
     markup.row(InlineKeyboardButton("🎁 DAILY BONUS", callback_data="daily_bonus"))
     
@@ -200,6 +217,9 @@ def admin_broadcast(message):
 def admin_backup(message):
     if message.from_user.id != ADMIN_ID: return
     bot.reply_to(message, "⏳ Generating MongoDB Backup...")
+
+
+
     
     users_data = list(users_col.find({}))
     for u in users_data:
@@ -212,6 +232,27 @@ def admin_backup(message):
         bot.send_document(message.chat.id, doc, caption="📦 <b>Database Backup</b>\n\nAll user balances and info successfully exported.", parse_mode='HTML')
     
     os.remove("database_backup.json") # Clean up file after sending
+
+
+
+@bot.message_handler(commands=['history'])
+def user_history(message):
+    user_id = message.from_user.id
+    
+    # MongoDB se last 10 orders nikalna
+    orders = list(orders_col.find({"user_id": user_id}).sort("_id", -1).limit(10))
+    
+    if not orders:
+        bot.reply_to(message, "❌ <b>No Past Orders!</b>\nAapne abhi tak koi order nahi kiya hai.", parse_mode='HTML')
+        return
+        
+    text = "📜 <b>YOUR PAST ORDERS (Last 10)</b> 📜\n\n"
+    for i, order in enumerate(orders, 1):
+        text += f"<blockquote>{i}. 🆔 <b>Order ID:</b> <code>{order['_id']}</code></blockquote>\n"
+        
+    text += "\n<i>Status check karne ke liye is ID ko Help section me bhejein.</i>"
+    bot.reply_to(message, text, parse_mode='HTML')
+
 
 # ==========================================
 # 🤖 BOT HANDLERS
@@ -285,7 +326,7 @@ def handle_query(call):
     elif call.data == "insta_view":
         user = users_col.find_one({"_id": user_id})
         diamonds = user.get('diamonds', 0.0)
-        text = f"📸 <b>Instagram Views Service</b>\n\n<blockquote>💰 <b>Rate:</b> 1000 Views = {INSTA_VIEW_RATE * 1000} Diamonds\n💎 <b>Your Balance:</b> {round(diamonds, 2)} Diamonds</blockquote>\n\n⚡ Fast Delivery & Non-Drop"
+        text = f"📸 <b>Instagram Views Service</b>\n\n<blockquote>💰 <b>Rate:</b> 1000 Views = {INSTA_VIEW_RATE * 1000} Diamonds\n💎 <b>Your Balance:</b> {round(diamonds, 2)} Diamonds</blockquote>\n\n⚡ Fast Delivery & Non-Drop/n/n<blockquote>🩵 <b>MINIMUM ORDER 100 VIEW ONLY</b></blockquote>"
         bot.edit_message_media(media=InputMediaPhoto(IMAGES['insta'], caption=text, parse_mode='HTML'), chat_id=chat_id, message_id=message_id, reply_markup=order_action_menu())
 
     elif call.data == "start_order":
