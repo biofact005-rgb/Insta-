@@ -33,7 +33,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 
 # Purana CHANNEL_USERNAME = "@errorkid_05" hata kar ye likho:
 CHANNEL_USERNAME_1 = "@errorkid_05" 
-CHANNEL_USERNAME_2 = "@second_channel" # Yahan dusra channel daalna
+CHANNEL_USERNAME_2 = "@ER_INSTAUPDATE" # Yahan dusra channel daalna
 
 
 
