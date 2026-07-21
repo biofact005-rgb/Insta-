@@ -27,7 +27,7 @@ SHORTENER_API = os.getenv("SHORTENER_API", "YOUR_SHORTENER_API_KEY_HERE")
 SHORTENER_URL = os.getenv("SHORTENER_URL", "https://gplinks.in/api") # Ya Shareus/Shrinkme ka URL
 
 MAINTENANCE_MODE = False
-CHANNEL_USERNAME_1 = "@errorkid_05" 
+CHANNEL_USERNAME_1 = "@errorkids" 
 CHANNEL_USERNAME_2 = "@ER_INSTAUPDATE" 
 PROOF_CHANNEL = "@live_proff" 
 
